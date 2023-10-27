@@ -87,7 +87,7 @@ watch(fields, (newFields) => {
 
 function submitPoint() {
     // fields.points.push(newPoint.value)
-    emit('startSimulation', particle)
+    emit('startSimulation', particle.value)
 }
 </script>
 
