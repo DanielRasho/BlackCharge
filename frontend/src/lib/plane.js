@@ -30,7 +30,7 @@ export const initializePlane = (
     }
 
     // Axes
-    let yAxisPos = col_gap / 2 + 2 * col_gap
+    let yAxisPos = columns / 2 * col_gap
     let yAxis = two.makeArrow(yAxisPos, two.height, yAxisPos, 0, 12)
     yAxis.linewidth = 2
 
