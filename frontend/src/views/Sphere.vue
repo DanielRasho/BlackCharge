@@ -30,20 +30,6 @@ class SphereData {
         this.radius = radius
         this.charge = charge
     }
-
-    // get radius() {
-    //     return this.radius
-    // }
-    // get charge() {
-    //     return this.charge
-    // }
-
-    // set radius(r) {
-    //     return (this.radius = r)
-    // }
-    // set charge(c) {
-    //     return (this.charge = c)
-    // }
 }
 
 onMounted(async () => {
