@@ -8,20 +8,34 @@ export class Axis {
         this.min = min
         this.max = max
     }
+}
 
-    // get min() {
-    //     return this.min
-    // }
-    // get max() {
-    //     return this.max
-    // }
+export class Particle {
+    /**
+     * Represents a particle to be launched.
+     * 
+     * @param {SimulationMagnitude} charge The charge of the particle
+     * @param {SimulationMagnitude} mass The mass of the particle
+     */
+    constructor(charge, mass) {
+        this.charge = charge;
+        this.mass = mass;
+    }
+}
 
-    // set min(m) {
-    //     this.min = m
-    // }
-    // set max(m) {
-    //     this.max = m
-    // }
+export class SimulationInput {
+
+    /**
+     * Represents the user most likely input of the simulation.
+     * 
+     * Unites a particle and it's velocity in one single class.
+     * @param {Particle} particle 
+     * @param {SimulationMagnitude} initialVelocity The initial velocity of the particle
+     */
+    constructor(particle, initialVelocity) {
+        this.particle = particle;
+        this.initialVelocity = initialVelocity;
+    }
 }
 
 export class SimulationContext {
@@ -31,33 +45,13 @@ export class SimulationContext {
      * This class is used to save data of the fields.
      * @param {Axis} axis x-Axis data
      * @param {Object} figure Data of the figure to simulate
-     * @param {Number[]} points Array of starting points that have been simulated
+     * @param {SimulationInput} input The input of the simulation
      */
-    constructor(axis, figure, points) {
+    constructor(axis, figure, input) {
         this.axis = axis
         this.figure = figure
-        this.points = points
+        this.input = input
     }
-
-    // get axis() {
-    //     return this.axis
-    // }
-    // get figure() {
-    //     return this.figure
-    // }
-    // get points() {
-    //     return this.points
-    // }
-
-    // set axis(a) {
-    //     return (this.axis = a)
-    // }
-    // set figure(f) {
-    //     return (this.figure = f)
-    // }
-    // set points(p) {
-    //     return (this.points = p)
-    // }
 }
 
 export class SimulationMagnitude {
@@ -74,24 +68,4 @@ export class SimulationMagnitude {
         this.name = name
         this.unit = unit
     }
-
-    // get value() {
-    //     return this.value
-    // }
-    // get name() {
-    //     return this.name
-    // }
-    // get unit() {
-    //     return this.unit
-    // }
-
-    // set value(v) {
-    //     return (this.value = v)
-    // }
-    // set name(n) {
-    //     return (this.name = n)
-    // }
-    // set unit(u) {
-    //     return (this.unit = u)
-    // }
 }

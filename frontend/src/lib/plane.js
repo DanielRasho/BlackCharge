@@ -3,12 +3,14 @@ import Two from 'two.js'
 /**
  * Draws a plane according to the given parameters.
  * @param {Two} two The renderer of the TwoJS
+ * @param {Two.Vector} originPos The position of the origin.
  * @param {Number} columns The number of columns in the graph
  * @param {Number} rows The number of rows in the graph
  * @param {String} guideLinesColor The color of the lines in the background
  */
 export const initializePlane = (
     two,
+    originPos,
     columns = 25,
     rows = 11,
     guideLinesColor = '#cccccc'
@@ -30,11 +32,11 @@ export const initializePlane = (
     }
 
     // Axes
-    let yAxisPos = columns / 2 * col_gap
+    let yAxisPos = originPos.x
     let yAxis = two.makeArrow(yAxisPos, two.height, yAxisPos, 0, 12)
     yAxis.linewidth = 2
 
-    let xAxisPos = two.height - (rows * row_gap) / 2
+    let xAxisPos = originPos.y
     let xAxis = two.makeArrow(0, xAxisPos, two.width, xAxisPos, 12)
     xAxis.linewidth = 2
 }

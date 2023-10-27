@@ -38,13 +38,13 @@
         </fieldSection>
 
         <fieldSection title="Point" class="submit-box">
-            <numberField
+            <!-- <numberField
                 name="Position"
                 unit="m"
                 width="10ch"
                 :initialValue="props.fields.points.length"
                 @field-updated="newPoint = $event"
-            />
+            /> -->
             <div class="wrapper-container-center">
                 <buttonImportant class="submit-btn" @click="submitPoint">
                     Submit <i class="fa-solid fa-arrow-right"></i>
