@@ -59,40 +59,16 @@ import buttonImportant from '@/components/atoms/buttonImportant.vue'
 import numberField from '@/components/atoms/numberField.vue'
 import fieldSection from '@/components/molecules/fieldSection.vue'
 import { reactive, ref, watch, toRaw } from 'vue'
+import { ELECTRON } from '../../lib/particles'
+import { SimulationContext } from '../../lib/main'
 
-const emit = defineEmits(['changesSubmited', 'clear'])
+const emit = defineEmits(['changesSubmited', 'clear', 'startSimulation'])
 const props = defineProps({
-    fields: {
-        required: true,
-        default: {
-            axis: {
-                min: -5,
-                max: 5
-            },
-            figure: {
-                radius: {
-                    value: 1,
-                    name: 'Radius',
-                    unit: 'm'
-                },
-                heigh: {
-                    value: 1,
-                    name: 'Height',
-                    unit: 'm'
-                },
-                charge: {
-                    value: 1,
-                    name: 'Charge',
-                    unit: 'nC'
-                }
-            },
-            points: []
-        }
-    }
+    fields: { type: SimulationContext, required: true }
 })
 
 let fields = reactive(JSON.parse(JSON.stringify(props.fields)))
-const newPoint = ref(0)
+const particle = ref(ELECTRON)
 
 function calculateFieldNameWidth(names) {
     let maxLen = 0
@@ -110,7 +86,8 @@ watch(fields, (newFields) => {
 })
 
 function submitPoint() {
-    fields.points.push(newPoint.value)
+    // fields.points.push(newPoint.value)
+    emit('startSimulation', particle)
 }
 </script>
 
