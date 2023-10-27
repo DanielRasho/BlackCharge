@@ -13,9 +13,37 @@ import fieldsContainer from '@/components/organism/fieldsContainer.vue'
 import { onMounted, ref, toRaw } from 'vue'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
-import { initializePlane, drawPoints } from '../lib/plane.js'
+import { initializePlane } from '../lib/plane.js'
+import { SimulationMagnitude, SimulationContext, Axis } from "../lib/main";
 
 let two
+
+class SphereData {
+    /**
+     * Constructs an object that holds all the data related to the sphere.
+     *
+     * @param {SimulationMagnitude} radius The radius of the sphere
+     * @param {SimulationMagnitude} charge The charge of the sphere
+     */
+    constructor(radius, charge) {
+        this.radius = radius
+        this.charge = charge
+    }
+
+    // get radius() {
+    //     return this.radius
+    // }
+    // get charge() {
+    //     return this.charge
+    // }
+
+    // set radius(r) {
+    //     return (this.radius = r)
+    // }
+    // set charge(c) {
+    //     return (this.charge = c)
+    // }
+}
 
 onMounted(async () => {
     let elem = document.querySelector('#canvas')
@@ -29,27 +57,13 @@ onMounted(async () => {
     two.update()
 })
 
-const fields = ref({
-    axis: {
-        x: {
-            min: -5,
-            max: 5
-        }
-    },
-    figure: {
-        radius: {
-            value: 1,
-            name: 'Radius',
-            unit: 'm'
-        },
-        charge: {
-            value: 1,
-            name: 'Charge',
-            unit: 'C'
-        }
-    },
-    points: []
-})
+let data = new SphereData(
+    new SimulationMagnitude(1, 'Radius', 'm'),
+    new SimulationMagnitude(1, 'Charge', 'C')
+)
+let axis = new Axis(-5, 5)
+
+const fields = ref(new SimulationContext(axis, data, []))
 
 const updateFields = (newValue) => {
     fields.value = newValue
@@ -132,11 +146,6 @@ const drawHemisphere = (drawer, originPos, context) => {
     )
 }
 
-const contextToFigure = (c) => ({
-    radius: c.figure.radius.value,
-    charge: c.figure.charge.value
-});
-
 function drawCanvas(context) {
     let rows = 11
     let columns = 25
@@ -148,13 +157,7 @@ function drawCanvas(context) {
 
     initializePlane(two, columns, rows)
     drawHemisphere(two, originPos, context)
-    drawPoints(
-        two,
-        originPos,
-        context,
-        contextToFigure,
-        js_hemisphere_field_on
-    )
+    //drawPoints(two, originPos, context)
 
     two.update()
 }

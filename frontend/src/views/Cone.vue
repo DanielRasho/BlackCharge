@@ -161,13 +161,7 @@ function drawCanvas(context) {
 
     initializePlane(two, columns, rows)
     drawCone(two, originPos, rowGap, columnGap, context)
-    drawPoints(
-        two,
-        originPos,
-        context,
-        contextToFigure,
-        js_cone_field_on,
-    )
+    drawPoints(two, originPos, context, contextToFigure, js_cone_field_on)
 
     two.update()
 }

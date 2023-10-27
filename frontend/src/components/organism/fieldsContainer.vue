@@ -8,16 +8,16 @@
                     placeholder="- - -"
                     unit="m"
                     width="7ch"
-                    :initialValue="props.fields.axis.x.min"
-                    @field-updated="fields.axis.x.min = $event"
+                    :initialValue="props.fields.axis.min"
+                    @field-updated="fields.axis.min = $event"
                 />
                 <numberField
                     name="Max"
                     placeholder="- - -"
                     unit="m"
                     width="7ch"
-                    :initialValue="props.fields.axis.x.max"
-                    @field-updated="fields.axis.x.max = $event"
+                    :initialValue="props.fields.axis.max"
+                    @field-updated="fields.axis.max = $event"
                 />
             </div>
         </fieldSection>
@@ -66,10 +66,8 @@ const props = defineProps({
         required: true,
         default: {
             axis: {
-                x: {
-                    min: -5,
-                    max: 5
-                }
+                min: -5,
+                max: 5,
             },
             figure: {
                 radius: {
