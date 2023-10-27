@@ -67,7 +67,7 @@ const props = defineProps({
         default: {
             axis: {
                 min: -5,
-                max: 5,
+                max: 5
             },
             figure: {
                 radius: {

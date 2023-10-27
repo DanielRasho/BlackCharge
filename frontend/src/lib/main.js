@@ -13,28 +13,27 @@ export class Axis {
 export class Particle {
     /**
      * Represents a particle to be launched.
-     * 
+     *
      * @param {SimulationMagnitude} charge The charge of the particle
      * @param {SimulationMagnitude} mass The mass of the particle
      */
     constructor(charge, mass) {
-        this.charge = charge;
-        this.mass = mass;
+        this.charge = charge
+        this.mass = mass
     }
 }
 
 export class SimulationInput {
-
     /**
      * Represents the user most likely input of the simulation.
-     * 
+     *
      * Unites a particle and it's velocity in one single class.
-     * @param {Particle} particle 
+     * @param {Particle} particle
      * @param {SimulationMagnitude} initialVelocity The initial velocity of the particle
      */
     constructor(particle, initialVelocity) {
-        this.particle = particle;
-        this.initialVelocity = initialVelocity;
+        this.particle = particle
+        this.initialVelocity = initialVelocity
     }
 }
 

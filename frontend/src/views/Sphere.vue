@@ -14,8 +14,8 @@ import { onMounted, ref, toRaw } from 'vue'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
 import { initializePlane } from '../lib/plane.js'
-import { SimulationMagnitude, SimulationContext, Axis } from "../lib/main";
-import { ELECTRON } from "../lib/particles";
+import { SimulationMagnitude, SimulationContext, Axis } from '../lib/main'
+import { ELECTRON } from '../lib/particles'
 
 let two
 
@@ -70,11 +70,7 @@ const updateFields = (newValue) => {
 const drawSphere = (drawer, originPos, radius, context) => {
     let figureColor = 'blue'
 
-    let arc = drawer.makeCircle(
-        originPos.x,
-        originPos.y,
-        radius
-    )
+    let arc = drawer.makeCircle(originPos.x, originPos.y, radius)
     arc.stroke = figureColor
     arc.linewidth = 3
     arc.fill = 'transparent'
@@ -85,7 +81,7 @@ const drawSphere = (drawer, originPos, radius, context) => {
         originPos.x + radius,
         originPos.y
     )
-    line.stroke = "green"
+    line.stroke = 'green'
     line.linewidth = 3
 
     let backwardArc = drawer.makeArcSegment(
@@ -130,7 +126,7 @@ const drawSphere = (drawer, originPos, radius, context) => {
         {
             fill: 'red',
             stroke: 10,
-            size: 18,
+            size: 18
         }
     )
 }
@@ -139,10 +135,7 @@ function drawCanvas(context) {
     let rows = 11
     let columns = 25
     let radius = 80
-    let originPos = new Two.Vector(
-        two.width / 2,
-        two.height - radius
-    )
+    let originPos = new Two.Vector(two.width / 2, two.height - radius)
 
     initializePlane(two, originPos, columns, rows)
     drawSphere(two, originPos, radius, context)
