@@ -14,13 +14,10 @@ import { onMounted, ref, toRaw } from 'vue'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
 import { initializePlane, drawPoints } from '../lib/plane.js'
-import init, { js_hemisphere_field_on } from 'tphet_core'
 
 let two
 
 onMounted(async () => {
-    await init()
-
     let elem = document.querySelector('#canvas')
     two = new Two({
         fullscreen: false,

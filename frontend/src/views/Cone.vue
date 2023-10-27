@@ -12,7 +12,6 @@
 import fieldsContainer from '@/components/organism/fieldsContainer.vue'
 import { onMounted, ref, toRaw } from 'vue'
 import { initializePlane, drawPoints } from '../lib/plane'
-import init, { js_cone_field_on } from 'tphet_core'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
 

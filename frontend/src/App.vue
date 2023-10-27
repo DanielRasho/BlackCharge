@@ -12,14 +12,9 @@ const figures = ref([
         view: 'Cone'
     },
     {
-        name: 'Truncated Cone',
-        img: 'trunk.png',
-        view: 'ConeTrunk'
-    },
-    {
-        name: 'Hemisphere',
+        name: 'Sphere',
         img: 'hemisphere.png',
-        view: 'Hemisphere'
+        view: 'Sphere'
     }
 ])
 
