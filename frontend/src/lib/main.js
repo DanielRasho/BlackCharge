@@ -1,3 +1,5 @@
+export const EPSILON_0 = 8.854187817e-12;
+
 export class Axis {
     /**
      * Constructs an axis
