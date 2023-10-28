@@ -6,9 +6,16 @@
             @changesSubmited="updateFields($event)"
             @startSimulation="startSimulation($event)"
         >
-        <p>NOTE: The sphere drawing is not scaled correctly on the y-axis. The particle will go up according to the Y-Axis scale.</p>
-        <p>The simulation IS NOT running in real time. 1s in the simulation is not 1s in real life. You can open the console to see the real data.</p>
-    </fieldsContainer>
+            <p>
+                NOTE: The sphere drawing is not scaled correctly on the y-axis.
+                The particle will go up according to the Y-Axis scale.
+            </p>
+            <p>
+                The simulation IS NOT running in real time. 1s in the simulation
+                is not 1s in real life. You can open the console to see the real
+                data.
+            </p>
+        </fieldsContainer>
     </main>
 </template>
 
@@ -25,6 +32,7 @@ import {
     Particle,
     EPSILON_0,
     floatEquals,
+    SimulationInput
 } from '../lib/main'
 import { ELECTRON } from '../lib/particles'
 
@@ -68,8 +76,7 @@ onMounted(async () => {
     two = new Two({
         fullscreen: false,
         width: elem.offsetWidth,
-        height: elem.offsetHeight,
-        
+        height: elem.offsetHeight
     }).appendTo(elem)
 
     drawCanvas(fields.value)
@@ -82,7 +89,17 @@ let data = new SphereData(
 let x_axis = new Axis(-2e-2, 2e-2)
 let y_axis = new Axis(-2, 2)
 
-let fields = ref(new SimulationContext(x_axis, y_axis, data, ELECTRON))
+let fields = ref(
+    new SimulationContext(
+        x_axis,
+        y_axis,
+        data,
+        new SimulationInput(
+            ELECTRON,
+            new SimulationMagnitude(1, 'Velocity', 'm/s')
+        )
+    )
+)
 
 const updateFields = (newValue) => {
     fields.value = newValue
@@ -92,9 +109,9 @@ const updateFields = (newValue) => {
 
 /**
  *
- * @param {Particle} particle
+ * @param {SimulationInput} simInput
  */
-const startSimulation = (particle) => {
+const startSimulation = (simInput) => {
     const context = toRaw(fields.value)
     const radius = getRadiusInPixels(context)
     const originPos = getOriginPos(radius)
@@ -111,7 +128,7 @@ const startSimulation = (particle) => {
     two.bind(
         'update',
         constructSimulationTick(
-            particle,
+            simInput,
             context,
             point,
             angle,
@@ -124,7 +141,7 @@ const startSimulation = (particle) => {
 /**
  * Creates a tick function for the simulation, given the conditions.
  *
- * @param {Particle} particle The particle to simulate.
+ * @param {SimulationInput} simInput The input to the simulation..
  * @param {SimulationContext} context The context of the simulation.
  * @param {Two.Circle} point TwoJS object that displays the particle.
  * @param {Number} angle Angle that represents the position of the particle in the sphere.
@@ -132,7 +149,7 @@ const startSimulation = (particle) => {
  * @returns {Function} The function that simulates the ticks
  */
 const constructSimulationTick = (
-    particle,
+    { particle, initialVelocity },
     context,
     point,
     angle,
@@ -148,14 +165,14 @@ const constructSimulationTick = (
     const a_x0 = a * Math.cos(angle)
     const a_y0 = a * Math.sin(angle)
 
-    console.log(`Acceleration: (${a_x0}, ${a_y0})`);
+    console.log(`Acceleration: (${a_x0}, ${a_y0})`)
 
-    const v_0 = context.input.initialVelocity?.value ?? testingInitialVelocity
+    const v_0 = initialVelocity?.value ?? testingInitialVelocity
     const v_x0 = v_0 * Math.cos(angle)
     const v_y0 = v_0 * Math.sin(angle)
 
-    const x_0 = initialPosition.x / metersToPixels_X_Converter;
-    const y_0 = initialPosition.y / metersToPixels_Y_Converter;
+    const x_0 = initialPosition.x / metersToPixels_X_Converter
+    const y_0 = initialPosition.y / metersToPixels_Y_Converter
 
     console.log(`Initial Position: (${x_0}, ${y_0})`)
 
@@ -165,27 +182,23 @@ const constructSimulationTick = (
         t += 1e-2
         console.log(`t=${t}`)
 
-        const x =
-            x_0 +
-            v_x0 * t +
-            (1 / 2) * a_x0 * Math.pow(t, 2)
-        const y =
-            y_0 -
-            v_y0 * t -
-            (1 / 2) * a_y0 * Math.pow(t, 2)
+        const x = x_0 + v_x0 * t + (1 / 2) * a_x0 * Math.pow(t, 2)
+        const y = y_0 - v_y0 * t - (1 / 2) * a_y0 * Math.pow(t, 2)
 
         point.position.set(
             x * metersToPixels_X_Converter,
             y * metersToPixels_Y_Converter
         )
-        console.log(`Position set to (${x * metersToPixels_X_Converter},${y * metersToPixels_Y_Converter})}`)
+        console.log(
+            `Position set to (${x * metersToPixels_X_Converter},${
+                y * metersToPixels_Y_Converter
+            })}`
+        )
 
-        if ((x <= x_0 && y>= y_0) || floatEquals(t, 10, 0.1)) {
+        if ((x <= x_0 && y >= y_0) || floatEquals(t, 10, 0.1)) {
             console.log(`(${x}, ${y}) <= (${x_0}, ${y_0})`)
             two.unbind('update')
         }
-
-        // point.position.set(initialPosition.x + 10*t, initialPosition.y + 10*t)
     }
 }
 
@@ -280,8 +293,9 @@ const drawSphere = (drawer, originPos, radiusInPixels, context) => {
 function drawCanvas(context) {
     let elem = document.querySelector('#canvas')
     metersToPixels_X_Converter =
-        elem.offsetWidth / (context.x_axis.max - context.x_axis.min);
-    metersToPixels_Y_Converter = elem.offsetHeight / (context.y_axis.max - context.y_axis.min);
+        elem.offsetWidth / (context.x_axis.max - context.x_axis.min)
+    metersToPixels_Y_Converter =
+        elem.offsetHeight / (context.y_axis.max - context.y_axis.min)
 
     const radiusInPixels = getRadiusInPixels(context)
     const originPos = getOriginPos(radiusInPixels)

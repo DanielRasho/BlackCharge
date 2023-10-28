@@ -59,13 +59,44 @@
         </fieldSection>
 
         <fieldSection title="Point" class="submit-box">
-            <!-- <numberField
-                name="Position"
-                unit="m"
-                width="10ch"
-                :initialValue="props.fields.points.length"
-                @field-updated="newPoint = $event"
-            /> -->
+            <select
+                name="Particle"
+                v-model="simInput.particle"
+                @change="onSelectedParticleChanged($event)"
+                style="color: black"
+            >
+                <option
+                    v-for="option in particlesOptions"
+                    :value="option.value"
+                >
+                    {{ option.text }}
+                </option>
+            </select>
+
+            <div v-if="showParticleFields">
+                <numberField
+                    :name="props.fields.input.particle.charge.name"
+                    :unit="props.fields.input.particle.charge.unit"
+                    width="10ch"
+                    :initialValue="props.fields.input.particle.charge.value"
+                    @field-updated="simInput.particle.charge.value = $event"
+                />
+                <numberField
+                    :name="props.fields.input.particle.mass.name"
+                    :unit="props.fields.input.particle.mass.unit"
+                    width="10ch"
+                    :initialValue="props.fields.input.particle.mass.value"
+                    @field-updated="simInput.particle.mass.value = $event"
+                />
+                <numberField
+                    :name="props.fields.input.initialVelocity.name"
+                    :unit="props.fields.input.initialVelocity.unit"
+                    width="10ch"
+                    :initialValue="props.fields.input.initialVelocity.value"
+                    @field-updated="simInput.initialVelocity.value = $event"
+                />
+            </div>
+
             <div class="wrapper-container-center">
                 <buttonImportant class="submit-btn" @click="submitPoint">
                     Submit <i class="fa-solid fa-arrow-right"></i>
@@ -80,8 +111,13 @@ import buttonImportant from '@/components/atoms/buttonImportant.vue'
 import numberField from '@/components/atoms/numberField.vue'
 import fieldSection from '@/components/molecules/fieldSection.vue'
 import { reactive, ref, watch, toRaw } from 'vue'
-import { ELECTRON } from '../../lib/particles'
-import { SimulationContext } from '../../lib/main'
+import { ALFA, ELECTRON, MUON, PROTON, TAUON } from '../../lib/particles'
+import {
+    Particle,
+    SimulationContext,
+    SimulationInput,
+    SimulationMagnitude
+} from '../../lib/main'
 
 const emit = defineEmits(['changesSubmited', 'clear', 'startSimulation'])
 const props = defineProps({
@@ -89,7 +125,35 @@ const props = defineProps({
 })
 
 let fields = reactive(JSON.parse(JSON.stringify(props.fields)))
-const particle = ref(ELECTRON)
+const simInput = ref(
+    new SimulationInput(ELECTRON, new SimulationMagnitude(1, 'Velocity', 'm/s'))
+)
+const DEFAULT_PARTICLE = new Particle(
+    new SimulationMagnitude(1, 'Charge', 'C'),
+    new SimulationMagnitude(1, 'Mass', 'kg')
+)
+
+const particlesOptions = ref([
+    { text: 'Electrón', value: ELECTRON },
+    { text: 'Protón', value: PROTON },
+    { text: 'Alfa', value: ALFA },
+    { text: 'Muón', value: MUON },
+    { text: 'Tauón', value: TAUON },
+    { text: 'Custom', value: DEFAULT_PARTICLE }
+])
+const showParticleFields = ref(false)
+
+function onSelectedParticleChanged(event) {
+    console.log('OnSelectChanged!', event)
+    console.log(DEFAULT_PARTICLE, '===', toRaw(simInput.value.particle))
+
+    if (toRaw(simInput.value.particle) !== DEFAULT_PARTICLE) {
+        showParticleFields.value = false
+        return
+    }
+
+    showParticleFields.value = true
+}
 
 function calculateFieldNameWidth(names) {
     let maxLen = 0
@@ -107,8 +171,7 @@ watch(fields, (newFields) => {
 })
 
 function submitPoint() {
-    // fields.points.push(newPoint.value)
-    emit('startSimulation', particle.value)
+    emit('startSimulation', simInput.value)
 }
 </script>
 
