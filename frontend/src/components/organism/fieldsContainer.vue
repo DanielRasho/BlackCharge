@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <fieldSection title="Axis" class="common-box">
+        <fieldSection title="Axes" class="common-box">
             <h4>X axis</h4>
             <div class="wrapper-container">
                 <numberField
@@ -8,16 +8,36 @@
                     placeholder="- - -"
                     unit="m"
                     width="7ch"
-                    :initialValue="props.fields.axis.min"
-                    @field-updated="fields.axis.min = $event"
+                    :initialValue="props.fields.x_axis.min"
+                    @field-updated="fields.x_axis.min = $event"
                 />
                 <numberField
                     name="Max"
                     placeholder="- - -"
                     unit="m"
                     width="7ch"
-                    :initialValue="props.fields.axis.max"
-                    @field-updated="fields.axis.max = $event"
+                    :initialValue="props.fields.x_axis.max"
+                    @field-updated="fields.x_axis.max = $event"
+                />
+            </div>
+
+            <h4>Y axis</h4>
+            <div class="wrapper-container">
+                <numberField
+                    name="Min"
+                    placeholder="- - -"
+                    unit="m"
+                    width="7ch"
+                    :initialValue="props.fields.y_axis.min"
+                    @field-updated="fields.y_axis.min = $event"
+                />
+                <numberField
+                    name="Max"
+                    placeholder="- - -"
+                    unit="m"
+                    width="7ch"
+                    :initialValue="props.fields.y_axis.max"
+                    @field-updated="fields.y_axis.max = $event"
                 />
             </div>
         </fieldSection>
@@ -34,6 +54,7 @@
                     :initialValue="field.value"
                     @field-updated="field.value = $event"
                 />
+                <slot></slot>
             </div>
         </fieldSection>
 

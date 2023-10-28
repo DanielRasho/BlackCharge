@@ -1,4 +1,4 @@
-export const EPSILON_0 = 8.854187817e-12;
+export const EPSILON_0 = 8.854187817e-12
 
 export class Axis {
     /**
@@ -44,12 +44,14 @@ export class SimulationContext {
      * Constructs a simulation context for the given data.
      *
      * This class is used to save data of the fields.
-     * @param {Axis} axis x-Axis data
+     * @param {Axis} x_axis x-Axis data
+     * @param {Axis} y_axis y-Axis data
      * @param {Object} figure Data of the figure to simulate
      * @param {SimulationInput} input The input of the simulation
      */
-    constructor(axis, figure, input) {
-        this.axis = axis
+    constructor(x_axis, y_axis, figure, input) {
+        this.x_axis = x_axis
+        this.y_axis = y_axis
         this.figure = figure
         this.input = input
     }
@@ -69,4 +71,17 @@ export class SimulationMagnitude {
         this.name = name
         this.unit = unit
     }
+}
+
+/**
+ * Checks if n1 and n2 are a maximum of delta units apart.
+ * 
+ * This function can be used to check if two floats are "equal".
+ * @param {Number} n1 
+ * @param {Number} n2 
+ * @param {Number} delta 
+ * @returns {Boolean} 
+ */
+export const floatEquals = (n1, n2, delta) => {
+    return Math.abs(n1 - n2) < delta
 }

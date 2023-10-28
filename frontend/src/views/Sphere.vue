@@ -5,7 +5,10 @@
             :fields="fields"
             @changesSubmited="updateFields($event)"
             @startSimulation="startSimulation($event)"
-        ></fieldsContainer>
+        >
+        <p>NOTE: The sphere drawing is not scaled correctly on the y-axis. The particle will go up according to the Y-Axis scale.</p>
+        <p>The simulation IS NOT running in real time. 1s in the simulation is not 1s in real life. You can open the console to see the real data.</p>
+    </fieldsContainer>
     </main>
 </template>
 
@@ -15,16 +18,37 @@ import { onMounted, ref, toRaw } from 'vue'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
 import { initializePlane } from '../lib/plane.js'
-import { SimulationMagnitude, SimulationContext, Axis, Particle, EPSILON_0 } from '../lib/main'
+import {
+    SimulationMagnitude,
+    SimulationContext,
+    Axis,
+    Particle,
+    EPSILON_0,
+    floatEquals,
+} from '../lib/main'
 import { ELECTRON } from '../lib/particles'
 
 let two = new Two()
 const rows = 11
 const columns = 25
-const radius = 80
-const testingInitialVelocity = 15;
+const testingInitialVelocity = 1
 
-const getOriginPos = () => new Two.Vector(two.width / 2, two.height - radius)
+let metersToPixels_X_Converter = 1
+let metersToPixels_Y_Converter = 1
+
+/**
+ * Computes the position of the origin with the given sphere radius.
+ * @param {Number} radiusInPixels
+ */
+const getOriginPos = (radiusInPixels) =>
+    new Two.Vector(two.width / 2, two.height - radiusInPixels)
+
+/**
+ * Computes the radius of the sphere in Pixels.
+ * @param {SimulationContext} context
+ */
+const getRadiusInPixels = (context) =>
+    context.figure.radius.value * metersToPixels_X_Converter
 
 class SphereData {
     /**
@@ -44,45 +68,62 @@ onMounted(async () => {
     two = new Two({
         fullscreen: false,
         width: elem.offsetWidth,
-        height: elem.offsetHeight
+        height: elem.offsetHeight,
+        
     }).appendTo(elem)
 
     drawCanvas(fields.value)
 })
 
 let data = new SphereData(
-    new SimulationMagnitude(1, 'Radius', 'm'),
-    new SimulationMagnitude(1, 'Charge', 'C')
+    new SimulationMagnitude(4e-3, 'Radius', 'm'),
+    new SimulationMagnitude(1e-26, 'Charge', 'C')
 )
-let axis = new Axis(-5, 5)
+let x_axis = new Axis(-2e-2, 2e-2)
+let y_axis = new Axis(-2, 2)
 
-let fields = ref(new SimulationContext(axis, data, ELECTRON))
+let fields = ref(new SimulationContext(x_axis, y_axis, data, ELECTRON))
 
 const updateFields = (newValue) => {
     fields.value = newValue
-    console.log('FROM PARENT')
-    console.dir(fields.value)
     two.clear()
     drawCanvas(toRaw(newValue))
 }
 
+/**
+ *
+ * @param {Particle} particle
+ */
 const startSimulation = (particle) => {
-    let context = toRaw(fields.value)
-    const originPos = getOriginPos()
-    const angle = HALF_PI;
-    const initialPosition = new Two.Vector(originPos.x + radius * Math.cos(angle), originPos.y - radius * Math.sin(angle))
-    console.log("Starting simulation...")
+    const context = toRaw(fields.value)
+    const radius = getRadiusInPixels(context)
+    const originPos = getOriginPos(radius)
+    const angle = HALF_PI
+    const initialPosition = new Two.Vector(
+        originPos.x + radius * Math.cos(angle),
+        originPos.y - radius * Math.sin(angle)
+    )
+    console.log('Starting simulation...')
     console.dir(context)
 
     let point = two.makeCircle(initialPosition.x, initialPosition.y, 5)
     point.fill = '#CF9FFF'
-    point.bind('update', constructSimulationTick(particle, context, point, angle, initialPosition))
+    two.bind(
+        'update',
+        constructSimulationTick(
+            particle,
+            context,
+            point,
+            angle,
+            initialPosition
+        )
+    )
     two.play()
 }
 
 /**
  * Creates a tick function for the simulation, given the conditions.
- * 
+ *
  * @param {Particle} particle The particle to simulate.
  * @param {SimulationContext} context The context of the simulation.
  * @param {Two.Circle} point TwoJS object that displays the particle.
@@ -90,50 +131,83 @@ const startSimulation = (particle) => {
  * @param {Two.Vector} initialPosition The initial position of the particle.
  * @returns {Function} The function that simulates the ticks
  */
-const constructSimulationTick = (particle, context, point, angle, initialPosition) => {
+const constructSimulationTick = (
+    particle,
+    context,
+    point,
+    angle,
+    initialPosition
+) => {
     // TODO Take into account units!
-    
-    const chargeField = getChargeField(context.figure);
-    console.log(`The charge field is: ${chargeField}`);
-    const a = chargeField * particle.charge.value / particle.mass.value;
-    const a_x0 = a*Math.cos(angle);
-    const a_y0 = a*Math.sin(angle);
 
-    const v_0 = context.input.initialVelocity?.value ?? testingInitialVelocity;
-    const v_x0 = v_0 * Math.cos(angle);
-    const v_y0 = v_0 * Math.sin(angle);
+    const chargeField = getChargeField(context.figure)
+    console.log(`The charge field is: ${chargeField}`)
+    let t = 0
 
-    console.log("Creating function...")
+    const a = (chargeField * particle.charge.value) / particle.mass.value
+    const a_x0 = a * Math.cos(angle)
+    const a_y0 = a * Math.sin(angle)
 
-    return (frameCount) => {
-        const t = frameCount / 30;
-        console.log(`t=${t}`);
+    console.log(`Acceleration: (${a_x0}, ${a_y0})`);
 
-        const x = initialPosition.x + v_x0 * t + 1/2 * a_x0 * t * t;
-        const y = initialPosition.y + v_y0 * t + 1/2 * a_y0 * t* t;
+    const v_0 = context.input.initialVelocity?.value ?? testingInitialVelocity
+    const v_x0 = v_0 * Math.cos(angle)
+    const v_y0 = v_0 * Math.sin(angle)
 
-        point.position.set(x, y)
-        console.log(`Position set to (${x},${y})}`)
+    const x_0 = initialPosition.x / metersToPixels_X_Converter;
+    const y_0 = initialPosition.y / metersToPixels_Y_Converter;
+
+    console.log(`Initial Position: (${x_0}, ${y_0})`)
+
+    console.log('Creating function...')
+
+    return (_) => {
+        t += 1e-2
+        console.log(`t=${t}`)
+
+        const x =
+            x_0 +
+            v_x0 * t +
+            (1 / 2) * a_x0 * Math.pow(t, 2)
+        const y =
+            y_0 -
+            v_y0 * t -
+            (1 / 2) * a_y0 * Math.pow(t, 2)
+
+        point.position.set(
+            x * metersToPixels_X_Converter,
+            y * metersToPixels_Y_Converter
+        )
+        console.log(`Position set to (${x * metersToPixels_X_Converter},${y * metersToPixels_Y_Converter})}`)
+
+        if ((x <= x_0 && y>= y_0) || floatEquals(t, 10, 0.1)) {
+            console.log(`(${x}, ${y}) <= (${x_0}, ${y_0})`)
+            two.unbind('update')
+        }
+
+        // point.position.set(initialPosition.x + 10*t, initialPosition.y + 10*t)
     }
 }
 
 /**
- * 
+ *
  * @param {SphereData} figureInfo The data of the figure
  */
-const getChargeField = (figureInfo) =>  figureInfo.charge.value / (4 * HALF_PI * 2 * EPSILON_0 * Math.pow(figureInfo.radius.value, 2));
+const getChargeField = (figureInfo) =>
+    figureInfo.charge.value /
+    (4 * HALF_PI * 2 * EPSILON_0 * Math.pow(figureInfo.radius.value, 2))
 
 /**
  * Draws the hemisphere into the screen.
  * @param {Two} drawer TwoJS object
  * @param {Two.Vector} originPos Position of the origin in the canvas
- * @param {Number} radius Radius of the sphere
- * @param {Object} context object that contains all the fields that the user can change.
+ * @param {Number} radiusInPixels Radius of the sphere in pixels
+ * @param {SimulationContext} context Object that contains all the fields that the user can change.
  */
-const drawSphere = (drawer, originPos, radius, context) => {
+const drawSphere = (drawer, originPos, radiusInPixels, context) => {
     let figureColor = 'blue'
 
-    let arc = drawer.makeCircle(originPos.x, originPos.y, radius)
+    let arc = drawer.makeCircle(originPos.x, originPos.y, radiusInPixels)
     arc.stroke = figureColor
     arc.linewidth = 3
     arc.fill = 'transparent'
@@ -141,7 +215,7 @@ const drawSphere = (drawer, originPos, radius, context) => {
     let line = drawer.makeLine(
         originPos.x,
         originPos.y,
-        originPos.x + radius,
+        originPos.x + radiusInPixels,
         originPos.y
     )
     line.stroke = 'green'
@@ -150,8 +224,8 @@ const drawSphere = (drawer, originPos, radius, context) => {
     let backwardArc = drawer.makeArcSegment(
         originPos.x,
         originPos.y,
-        radius,
-        radius,
+        radiusInPixels,
+        radiusInPixels,
         HALF_PI * 2,
         HALF_PI * 4
     )
@@ -164,8 +238,8 @@ const drawSphere = (drawer, originPos, radius, context) => {
     let forwardArc = drawer.makeArcSegment(
         originPos.x,
         originPos.y,
-        radius,
-        radius,
+        radiusInPixels,
+        radiusInPixels,
         HALF_PI * 2,
         HALF_PI * 4
     )
@@ -175,17 +249,22 @@ const drawSphere = (drawer, originPos, radius, context) => {
     forwardArc.fill = 'transparent'
 
     let rString = `R = ${context.figure.radius.value} ${context.figure.radius.unit}`
-    drawer.makeText(rString, originPos.x + radius + 3, originPos.y - 10, {
-        alignment: 'left',
-        fill: 'green',
-        size: 18
-    })
+    drawer.makeText(
+        rString,
+        originPos.x + radiusInPixels + 3,
+        originPos.y - 10,
+        {
+            alignment: 'left',
+            fill: 'green',
+            size: 18
+        }
+    )
 
     let cString = `Q = ${context.figure.charge.value} ${context.figure.charge.unit}`
     drawer.makeText(
         cString,
-        originPos.x - radius / 2,
-        originPos.y + radius / 4,
+        originPos.x - radiusInPixels / 2,
+        originPos.y + radiusInPixels / 4,
         {
             fill: 'red',
             stroke: 10,
@@ -194,9 +273,21 @@ const drawSphere = (drawer, originPos, radius, context) => {
     )
 }
 
+/**
+ * Draws the canvas
+ * @param {SimulationContext} context
+ */
 function drawCanvas(context) {
-    initializePlane(two, getOriginPos(), columns, rows)
-    drawSphere(two, getOriginPos(), radius, context)
+    let elem = document.querySelector('#canvas')
+    metersToPixels_X_Converter =
+        elem.offsetWidth / (context.x_axis.max - context.x_axis.min);
+    metersToPixels_Y_Converter = elem.offsetHeight / (context.y_axis.max - context.y_axis.min);
+
+    const radiusInPixels = getRadiusInPixels(context)
+    const originPos = getOriginPos(radiusInPixels)
+
+    initializePlane(two, originPos, columns, rows)
+    drawSphere(two, originPos, radiusInPixels, context)
     //drawPoints(two, originPos, context)
 
     two.update()
