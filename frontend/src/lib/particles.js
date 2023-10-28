@@ -24,5 +24,5 @@ export const MUON = new Particle(
 
 export const TAUON = new Particle(
     new SimulationMagnitude(E, 'Charge', 'C'),
-    new SimulationMagnitude(3.18026887e10 - 27, 'Mass', 'Kg')
+    new SimulationMagnitude(3.18026887e-27, 'Mass', 'Kg')
 )
