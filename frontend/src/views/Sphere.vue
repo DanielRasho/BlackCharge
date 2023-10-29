@@ -29,7 +29,6 @@ import {
     SimulationMagnitude,
     SimulationContext,
     Axis,
-    Particle,
     EPSILON_0,
     floatEquals,
     SimulationInput
@@ -125,6 +124,8 @@ const startSimulation = (simInput) => {
 
     let point = two.makeCircle(initialPosition.x, initialPosition.y, 5)
     point.fill = '#CF9FFF'
+    two.update() // For debuggin purposes...
+
     two.bind(
         'update',
         constructSimulationTick(
@@ -195,7 +196,11 @@ const constructSimulationTick = (
             })}`
         )
 
-        if ((x <= x_0 && y >= y_0) || floatEquals(t, 10, 0.1)) {
+        const timedOut = floatEquals(t, 10, 0.1)
+        const xInsideSphere = angle <= HALF_PI ? x <= x_0 : x >= x_0
+        const yInsideSphere = y >= y_0
+
+        if ((xInsideSphere && yInsideSphere) || timedOut) {
             console.log(`(${x}, ${y}) <= (${x_0}, ${y_0})`)
             two.unbind('update')
         }
