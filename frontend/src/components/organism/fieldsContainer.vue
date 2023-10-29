@@ -88,14 +88,15 @@
                     :initialValue="props.fields.input.particle.mass.value"
                     @field-updated="simInput.particle.mass.value = $event"
                 />
-                <numberField
-                    :name="props.fields.input.initialVelocity.name"
-                    :unit="props.fields.input.initialVelocity.unit"
-                    width="10ch"
-                    :initialValue="props.fields.input.initialVelocity.value"
-                    @field-updated="simInput.initialVelocity.value = $event"
-                />
             </div>
+
+            <numberField
+                :name="props.fields.input.initialVelocity.name"
+                :unit="props.fields.input.initialVelocity.unit"
+                width="10ch"
+                :initialValue="props.fields.input.initialVelocity.value"
+                @field-updated="simInput.initialVelocity.value = $event"
+            />
 
             <div class="wrapper-container-center">
                 <buttonImportant class="submit-btn" @click="submitPoint">
