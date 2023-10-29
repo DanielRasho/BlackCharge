@@ -1,13 +1,13 @@
 <h1 align="center">
-    <img src="./phetLogo.png" width="200px">
-    <h1 align="center" style="font-style:italic;">Phet A La Tortrix</h1>
+    <img src="./blackHoleLogo.png" width="200px">
+    <h1 align="center" style="font-style:italic;">Black Charge</h1>
     <h5 align="center">
-    <i style="color:grey;"> A Electric field simulator app</i>
+    <i style="color:grey;"> A particle launcher simulator </i>
     </h5>
 
 </h1>
 
-Made with [VueJS](https://vuejs.org/) and [Rust](https://www.rust-lang.org/)
+Made with [VueJS](https://vuejs.org/)
 
 🔴 **Live View:** [***Here***](https://danielrasho.github.io/PhetALaTortrix/)
 
@@ -19,8 +19,8 @@ Made with <3 by
 - Daniel Rayo
 
 🔴 **Known Bugs:** 
+
 - Crash when reloading the page.
-- Truncated Cone function isn't defined when both radius are equal
 
 ## Compiling the project
 
