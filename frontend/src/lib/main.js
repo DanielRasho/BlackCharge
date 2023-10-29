@@ -1,4 +1,5 @@
 export const EPSILON_0 = 8.854187817e-12
+export const LIGHT_SPEED = 299_792_458
 
 export class Axis {
     /**

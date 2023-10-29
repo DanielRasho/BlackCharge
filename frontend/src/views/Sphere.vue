@@ -7,7 +7,7 @@
             @startSimulation="startSimulation($event)"
         >
             <p>
-                NOTE: The sphere drawing is not scaled correctly on the y-axis.
+                NOTE: The sphere drawing is only scaled according to the X-Axis.
                 The particle will go up according to the Y-Axis scale.
             </p>
             <p>
@@ -31,7 +31,9 @@ import {
     Axis,
     EPSILON_0,
     floatEquals,
-    SimulationInput
+    SimulationInput,
+    Particle,
+    LIGHT_SPEED
 } from '../lib/main'
 import { ELECTRON } from '../lib/particles'
 
@@ -111,6 +113,9 @@ const updateFields = (newValue) => {
  * @param {SimulationInput} simInput
  */
 const startSimulation = (simInput) => {
+    two.clear()
+    drawCanvas(toRaw(fields.value))
+
     const context = toRaw(fields.value)
     const radius = getRadiusInPixels(context)
     const originPos = getOriginPos(radius)
@@ -119,6 +124,53 @@ const startSimulation = (simInput) => {
         originPos.x + radius * Math.cos(angle),
         originPos.y - radius * Math.sin(angle)
     )
+
+    const escapeVelocity = computeEscapeVelocity(
+        context.figure,
+        simInput.particle
+    )
+    const isBlackHole = escapeVelocity >= LIGHT_SPEED
+    const maxHeight = isBlackHole
+        ? Infinity
+        : computeHeight(
+              simInput.initialVelocity.value,
+              computeAcceleration(context.figure, simInput.particle)
+          )
+
+    const escapeVelocityDisplay = `Escape Velocity: ${escapeVelocity} m/s.`
+    two.makeText(escapeVelocityDisplay, 10, 10, {
+        alignment: 'left',
+        fill: 'green'
+    })
+
+    const maxHeightDisplay = `Maximum Height: ${maxHeight} ${ isBlackHole ? "" : "m"}`
+    two.makeText(maxHeightDisplay, 10, 23, {
+        alignment: 'left',
+        fill: 'green'
+    })
+
+    two.makeText(
+        isBlackHole ? 'ITS AN ELECTROSTATIC BLACK HOLE!' : '',
+        10,
+        36,
+        {
+            alignment: 'left',
+            fill: 'green'
+        }
+    )
+
+    if (!isBlackHole) {
+        const dinamicHeightDisplayPosition = new Two.Vector(initialPosition.x + 20, initialPosition.y - maxHeight * metersToPixels_Y_Converter)
+        two.makeText(`${maxHeight} m`, dinamicHeightDisplayPosition.x, dinamicHeightDisplayPosition.y, {
+            alignment: 'left',
+            fill: 'orange'
+        })
+        const line = two.makeLine(initialPosition.x, initialPosition.y, initialPosition.x, dinamicHeightDisplayPosition.y)
+        line.fill = line.stroke = 'orange'
+        line.linewidth = 5
+        line.dashes = [6,5]
+    }
+
     console.log('Starting simulation...')
     console.dir(context)
 
@@ -137,6 +189,26 @@ const startSimulation = (simInput) => {
         )
     )
     two.play()
+}
+
+/**
+ * Computes the maximum height a body will reach given the initial speed of the body and acceleration it experiments.
+ * @param {Number} initialSpeed
+ * @param {Number} acceleration
+ */
+const computeHeight = (initialSpeed, acceleration) => {
+    return -Math.pow(initialSpeed, 2) / (2 * acceleration)
+}
+
+/**
+ * Computes the acceleration the particle will experiment due to the figure.
+ *
+ * @param {SphereData} figureInfo
+ * @param {Particle} particle
+ */
+const computeAcceleration = (figureInfo, particle) => {
+    const chargeField = getChargeField(figureInfo)
+    return (chargeField * particle.charge.value) / particle.mass.value
 }
 
 /**
@@ -282,7 +354,7 @@ const drawSphere = (drawer, originPos, radiusInPixels, context) => {
     drawer.makeText(
         cString,
         originPos.x - radiusInPixels / 2,
-        originPos.y + radiusInPixels / 4,
+        originPos.y - radiusInPixels / 4,
         {
             fill: 'red',
             stroke: 10,
@@ -292,10 +364,28 @@ const drawSphere = (drawer, originPos, radiusInPixels, context) => {
 }
 
 /**
+ * Computes the escape velocity of the given sphere.
+ *
+ * @param {SphereData} figureInfo
+ * @param {Particle} particle
+ * @returns {Number} The escape velocity in m/s.
+ */
+const computeEscapeVelocity = (figureInfo, particle) => {
+    const figureCharge = figureInfo.charge.value
+    const radius = figureInfo.radius.value
+    const particleCharge = particle.charge.value
+    const mass = particle.mass.value
+
+    const potential = Math.abs(figureCharge) / (4 * HALF_PI * 2 * EPSILON_0 * radius)
+    const term = (2 / mass) * Math.abs(particleCharge) * potential
+    return Math.sqrt(term)
+}
+
+/**
  * Draws the canvas
  * @param {SimulationContext} context
  */
-function drawCanvas(context) {
+const drawCanvas = (context) => {
     let elem = document.querySelector('#canvas')
     metersToPixels_X_Converter =
         elem.offsetWidth / (context.x_axis.max - context.x_axis.min)
