@@ -39,8 +39,6 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v4
       - name: Install dependencies
         run: nix-shell ../default.nix --run "yarn install"
-      - name: Build WASM
-        run: nix-shell ../default.nix --run "yarn wasm"
       - name: Build
         run: yarn build
       - name: Setup Pages
