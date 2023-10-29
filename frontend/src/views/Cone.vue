@@ -11,7 +11,7 @@
 <script setup>
 import fieldsContainer from '@/components/organism/fieldsContainer.vue'
 import { onMounted, ref, toRaw } from 'vue'
-import { initializePlane, drawPoints } from '../lib/plane'
+import { initializePlane } from '../lib/plane'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
 
