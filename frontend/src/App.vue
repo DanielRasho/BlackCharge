@@ -7,9 +7,9 @@ import { ref } from 'vue'
 const router = useRouter()
 const figures = ref([
     {
-        name: 'Cone',
+        name: 'Plane',
         img: 'cone.png',
-        view: 'Cone'
+        view: 'Plane'
     },
     {
         name: 'Sphere',
