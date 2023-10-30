@@ -5,13 +5,13 @@ in
   stdenv.mkDerivation {
     name = "Dev environment shell";
     buildInputs = [
-      eza
+      exa
       fd
 	  nodejs
 	  yarn
     ];
     shellHook = ''
-      alias ls=eza
+      alias ls=exa
       alias find=fd
       '';
   }
