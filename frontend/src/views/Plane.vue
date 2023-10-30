@@ -81,6 +81,57 @@ let fields = ref(
 
 // === DRAWING FUNCIONS ===
 
+const updateFields = (newValue) => {
+    fields.value = newValue
+    two.clear()
+    drawCanvas(toRaw(newValue))
+}
+
+/**
+ * Draws the hemisphere into the screen.
+ * @param {Two} drawer TwoJS object
+ * @param {Two.Vector} originPos Position of the origin in the canvas
+ * @param {SimulationContext} context Object that contains all the fields that the user can change.
+ */
+const drawPlane = (drawer, originPos, context) => {
+    let figureColor = 'blue'
+
+    let planeWith = drawer.width / 15
+    let planeHeight = drawer.height / 4
+
+    console.log(originPos)
+
+    let plane_points = [
+        new Two.Anchor( originPos , 0, 0, 0, 0, 0),
+        new Two.Anchor( originPos - planeWith, drawer.height, 0, 0, 0, 0)
+    ]
+
+    let plane = drawer.makePath(
+        originPos.x - planeWith, 0, 
+        originPos.x - planeWith, drawer.height, 
+        originPos.x + planeWith / 2, drawer.height - planeHeight,
+        originPos.x + planeWith / 2, planeHeight
+        ,false)
+    plane.stroke = 'blue'
+    plane.linewidth = 3
+    plane.dashes = [10, 6]
+    plane.fill = '#B3D6FF87'
+
+    let cString = `Q/m² = ${context.figure.chargeDensity.value} ${context.figure.chargeDensity.unit}`
+    drawer.makeText(
+        cString,
+        originPos.x + planeWith,
+        planeHeight,
+        {
+            alignment: 'left',
+            fill: 'green',
+            stroke: 10,
+            size: 18
+        }
+    )
+
+}
+
 /**
  * Draws the canvas
  * @param {SimulationContext} context
@@ -96,7 +147,7 @@ let fields = ref(
     const originPos = getOriginPos()
 
     initializePlane(two, originPos, columns, rows)
-    //drawSphere(two, originPos, radiusInPixels, context)
+    drawPlane(two, originPos, context)
 
     two.update()
 }
