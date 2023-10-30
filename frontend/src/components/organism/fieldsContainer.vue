@@ -134,7 +134,11 @@ const props = defineProps({
 
 let fields = reactive(JSON.parse(JSON.stringify(props.fields)))
 const simInput = ref(
-    new SimulationInput(ELECTRON, new SimulationMagnitude(1, 'Velocity', 'm/s'), new SimulationMagnitude(1e-6, 'Delta Time', 's'),)
+    new SimulationInput(
+        ELECTRON,
+        new SimulationMagnitude(1, 'Velocity', 'm/s'),
+        new SimulationMagnitude(1e-6, 'Delta Time', 's')
+    )
 )
 const DEFAULT_PARTICLE = new Particle(
     new SimulationMagnitude(1, 'Charge', 'C'),

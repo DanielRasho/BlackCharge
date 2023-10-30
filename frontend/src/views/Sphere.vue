@@ -13,7 +13,8 @@
             <p>
                 The simulation IS NOT running in real time. 1s in the simulation
                 is not 1s in real life. You can open the console to see the real
-                data.
+                data. Also, the parameter deltaTime specifies the number of
+                seconds that each frame in the simulation represents.
             </p>
         </fieldsContainer>
     </main>
@@ -98,7 +99,7 @@ let fields = ref(
         new SimulationInput(
             ELECTRON,
             new SimulationMagnitude(1, 'Velocity', 'm/s'),
-            new SimulationMagnitude(1e-6, 'Delta Time', 's'),
+            new SimulationMagnitude(1e-6, 'Delta Time', 's')
         )
     )
 )
@@ -136,16 +137,20 @@ const startSimulation = (simInput) => {
               simInput.initialVelocity.value,
               context.figure.charge.value,
               simInput.particle.mass.value,
-              Math.abs(simInput.particle.charge.value),
+              Math.abs(simInput.particle.charge.value)
           )
 
-    const escapeVelocityDisplay = `Escape Velocity: ${escapeVelocity.toExponential(4)} m/s.`
+    const escapeVelocityDisplay = `Escape Velocity: ${escapeVelocity.toExponential(
+        4
+    )} m/s.`
     two.makeText(escapeVelocityDisplay, 10, 10, {
         alignment: 'left',
         fill: 'green'
     })
 
-    const maxHeightDisplay = `Maximum Height: ${maxHeight.toExponential(4)} ${ isBlackHole ? "" : "m"}`
+    const maxHeightDisplay = `Maximum Height: ${maxHeight.toExponential(4)} ${
+        isBlackHole ? '' : 'm'
+    }`
     two.makeText(maxHeightDisplay, 10, 23, {
         alignment: 'left',
         fill: 'green'
@@ -162,15 +167,28 @@ const startSimulation = (simInput) => {
     )
 
     if (!isBlackHole) {
-        const dinamicHeightDisplayPosition = new Two.Vector(initialDrawPosition.x + 20, initialDrawPosition.y - maxHeight * metersToPixels_Y_Converter)
-        two.makeText(`${maxHeight.toExponential(4)} m`, dinamicHeightDisplayPosition.x, dinamicHeightDisplayPosition.y, {
-            alignment: 'left',
-            fill: 'orange'
-        })
-        const line = two.makeLine(initialDrawPosition.x, initialDrawPosition.y, initialDrawPosition.x, dinamicHeightDisplayPosition.y)
+        const dinamicHeightDisplayPosition = new Two.Vector(
+            initialDrawPosition.x + 20,
+            initialDrawPosition.y - maxHeight * metersToPixels_Y_Converter
+        )
+        two.makeText(
+            `${maxHeight.toExponential(4)} m`,
+            dinamicHeightDisplayPosition.x,
+            dinamicHeightDisplayPosition.y,
+            {
+                alignment: 'left',
+                fill: 'orange'
+            }
+        )
+        const line = two.makeLine(
+            initialDrawPosition.x,
+            initialDrawPosition.y,
+            initialDrawPosition.x,
+            dinamicHeightDisplayPosition.y
+        )
         line.fill = line.stroke = 'orange'
         line.linewidth = 5
-        line.dashes = [6,5]
+        line.dashes = [6, 5]
     }
 
     console.log('Starting simulation...')
@@ -186,7 +204,10 @@ const startSimulation = (simInput) => {
             simInput,
             context,
             point,
-            new Two.Vector(originPos.x / metersToPixels_X_Converter, context.figure.radius.value),
+            new Two.Vector(
+                originPos.x / metersToPixels_X_Converter,
+                context.figure.radius.value
+            ),
             simInput.deltaTime.value
         )
     )
@@ -200,8 +221,16 @@ const startSimulation = (simInput) => {
  * @param {Number} particleMass
  * @param {Number} particleCharge
  */
-const computeHeight = (initialSpeed, figureCharge, particleMass, particleCharge) => {
-    return 2*figureCharge*particleCharge/(4*HALF_PI*2*EPSILON_0*particleMass*Math.pow(initialSpeed, 2))
+const computeHeight = (
+    initialSpeed,
+    figureCharge,
+    particleMass,
+    particleCharge
+) => {
+    return (
+        (2 * figureCharge * particleCharge) /
+        (4 * HALF_PI * 2 * EPSILON_0 * particleMass * Math.pow(initialSpeed, 2))
+    )
 }
 
 /**
@@ -253,8 +282,11 @@ const constructSimulationTick = (
         console.log(`Position: ${y}`)
 
         // const y_pixels = two.height - y*metersToPixels_Y_Converter - context.figure.radius.value * metersToPixels_X_Converter
-        const y_pixels = two.height - y*metersToPixels_Y_Converter + 5/7 *context.figure.radius.value * metersToPixels_X_Converter
-        point.position.set(two.width / 2,y_pixels)
+        const y_pixels =
+            two.height -
+            y * metersToPixels_Y_Converter +
+            (5 / 7) * context.figure.radius.value * metersToPixels_X_Converter
+        point.position.set(two.width / 2, y_pixels)
         console.log(`Position set to ${y_pixels}`)
 
         const timedOut = floatEquals(t, 1, 0.1)
@@ -365,7 +397,8 @@ const computeEscapeVelocity = (figureInfo, particle) => {
     const particleCharge = particle.charge.value
     const mass = particle.mass.value
 
-    const potential = Math.abs(figureCharge) / (4 * HALF_PI * 2 * EPSILON_0 * radius)
+    const potential =
+        Math.abs(figureCharge) / (4 * HALF_PI * 2 * EPSILON_0 * radius)
     const term = (2 / mass) * Math.abs(particleCharge) * potential
     return Math.sqrt(term)
 }
