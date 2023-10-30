@@ -172,7 +172,7 @@ watch(fields, (newFields) => {
 })
 
 function submitPoint() {
-    emit('startSimulation', simInput.value)
+    emit('startSimulation', toRaw(simInput.value))
 }
 </script>
 
