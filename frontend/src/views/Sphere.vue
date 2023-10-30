@@ -256,7 +256,7 @@ const constructSimulationTick = (
     const v_0 = initialVelocity?.value ?? testingInitialVelocity
     let v_y = v_0
 
-    const x_0 = initialPosition.x
+    const diameter = 2*context.figure.radius.value*metersToPixels_X_Converter
     const y_0 = initialPosition.y
     let y = y_0
 
@@ -281,11 +281,7 @@ const constructSimulationTick = (
         y += v_y * t
         console.log(`Position: ${y}`)
 
-        // const y_pixels = two.height - y*metersToPixels_Y_Converter - context.figure.radius.value * metersToPixels_X_Converter
-        const y_pixels =
-            two.height -
-            y * metersToPixels_Y_Converter +
-            (5 / 7) * context.figure.radius.value * metersToPixels_X_Converter
+        const y_pixels = two.height - (y - y_0) * metersToPixels_Y_Converter - diameter
         point.position.set(two.width / 2, y_pixels)
         console.log(`Position set to ${y_pixels}`)
 
