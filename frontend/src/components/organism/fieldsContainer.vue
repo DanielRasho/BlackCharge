@@ -97,6 +97,13 @@
                 :initialValue="props.fields.input.initialVelocity.value"
                 @field-updated="simInput.initialVelocity.value = $event"
             />
+            <numberField
+                :name="props.fields.input.deltaTime.name"
+                :unit="props.fields.input.deltaTime.unit"
+                width="10ch"
+                :initialValue="props.fields.input.deltaTime.value"
+                @field-updated="simInput.deltaTime.value = $event"
+            />
 
             <div class="wrapper-container-center">
                 <buttonImportant class="submit-btn" @click="submitPoint">
@@ -127,7 +134,7 @@ const props = defineProps({
 
 let fields = reactive(JSON.parse(JSON.stringify(props.fields)))
 const simInput = ref(
-    new SimulationInput(ELECTRON, new SimulationMagnitude(1, 'Velocity', 'm/s'))
+    new SimulationInput(ELECTRON, new SimulationMagnitude(1, 'Velocity', 'm/s'), new SimulationMagnitude(1e-6, 'Delta Time', 's'),)
 )
 const DEFAULT_PARTICLE = new Particle(
     new SimulationMagnitude(1, 'Charge', 'C'),

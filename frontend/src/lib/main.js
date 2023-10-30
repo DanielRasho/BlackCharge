@@ -31,12 +31,14 @@ export class SimulationInput {
      * Represents the user most likely input of the simulation.
      *
      * Unites a particle and it's velocity in one single class.
-     * @param {Particle} particle
+     * @param {Particle} particle The information of the particle to simulate.
      * @param {SimulationMagnitude} initialVelocity The initial velocity of the particle
+     * @param {SimulationMagnitude} deltaTime The time that passes between each frame.
      */
-    constructor(particle, initialVelocity) {
+    constructor(particle, initialVelocity, deltaTime) {
         this.particle = particle
         this.initialVelocity = initialVelocity
+        this.deltaTime = deltaTime
     }
 }
 

@@ -84,11 +84,11 @@ onMounted(async () => {
 })
 
 let data = new SphereData(
-    new SimulationMagnitude(4e-3, 'Radius', 'm'),
-    new SimulationMagnitude(1e-26, 'Charge', 'C')
+    new SimulationMagnitude(2e-3, 'Radius', 'm'),
+    new SimulationMagnitude(1e-24, 'Charge', 'C')
 )
 let x_axis = new Axis(-2e-2, 2e-2)
-let y_axis = new Axis(-2, 2)
+let y_axis = new Axis(-1e-3, 4e-3)
 
 let fields = ref(
     new SimulationContext(
@@ -97,7 +97,8 @@ let fields = ref(
         data,
         new SimulationInput(
             ELECTRON,
-            new SimulationMagnitude(1, 'Velocity', 'm/s')
+            new SimulationMagnitude(1, 'Velocity', 'm/s'),
+            new SimulationMagnitude(1e-6, 'Delta Time', 's'),
         )
     )
 )
@@ -117,12 +118,11 @@ const startSimulation = (simInput) => {
     drawCanvas(toRaw(fields.value))
 
     const context = toRaw(fields.value)
-    const radius = getRadiusInPixels(context)
-    const originPos = getOriginPos(radius)
-    const angle = HALF_PI
-    const initialPosition = new Two.Vector(
-        originPos.x + radius * Math.cos(angle),
-        originPos.y - radius * Math.sin(angle)
+    const radiusInPixels = getRadiusInPixels(context)
+    const originPos = getOriginPos(radiusInPixels)
+    const initialDrawPosition = new Two.Vector(
+        originPos.x,
+        originPos.y - radiusInPixels
     )
 
     const escapeVelocity = computeEscapeVelocity(
@@ -134,16 +134,18 @@ const startSimulation = (simInput) => {
         ? Infinity
         : computeHeight(
               simInput.initialVelocity.value,
-              computeAcceleration(context.figure, simInput.particle)
+              context.figure.charge.value,
+              simInput.particle.mass.value,
+              Math.abs(simInput.particle.charge.value),
           )
 
-    const escapeVelocityDisplay = `Escape Velocity: ${escapeVelocity} m/s.`
+    const escapeVelocityDisplay = `Escape Velocity: ${escapeVelocity.toExponential(4)} m/s.`
     two.makeText(escapeVelocityDisplay, 10, 10, {
         alignment: 'left',
         fill: 'green'
     })
 
-    const maxHeightDisplay = `Maximum Height: ${maxHeight} ${ isBlackHole ? "" : "m"}`
+    const maxHeightDisplay = `Maximum Height: ${maxHeight.toExponential(4)} ${ isBlackHole ? "" : "m"}`
     two.makeText(maxHeightDisplay, 10, 23, {
         alignment: 'left',
         fill: 'green'
@@ -160,12 +162,12 @@ const startSimulation = (simInput) => {
     )
 
     if (!isBlackHole) {
-        const dinamicHeightDisplayPosition = new Two.Vector(initialPosition.x + 20, initialPosition.y - maxHeight * metersToPixels_Y_Converter)
-        two.makeText(`${maxHeight} m`, dinamicHeightDisplayPosition.x, dinamicHeightDisplayPosition.y, {
+        const dinamicHeightDisplayPosition = new Two.Vector(initialDrawPosition.x + 20, initialDrawPosition.y - maxHeight * metersToPixels_Y_Converter)
+        two.makeText(`${maxHeight.toExponential(4)} m`, dinamicHeightDisplayPosition.x, dinamicHeightDisplayPosition.y, {
             alignment: 'left',
             fill: 'orange'
         })
-        const line = two.makeLine(initialPosition.x, initialPosition.y, initialPosition.x, dinamicHeightDisplayPosition.y)
+        const line = two.makeLine(initialDrawPosition.x, initialDrawPosition.y, initialDrawPosition.x, dinamicHeightDisplayPosition.y)
         line.fill = line.stroke = 'orange'
         line.linewidth = 5
         line.dashes = [6,5]
@@ -174,7 +176,7 @@ const startSimulation = (simInput) => {
     console.log('Starting simulation...')
     console.dir(context)
 
-    let point = two.makeCircle(initialPosition.x, initialPosition.y, 5)
+    let point = two.makeCircle(initialDrawPosition.x, initialDrawPosition.y, 5)
     point.fill = '#CF9FFF'
     two.update() // For debuggin purposes...
 
@@ -184,8 +186,8 @@ const startSimulation = (simInput) => {
             simInput,
             context,
             point,
-            angle,
-            initialPosition
+            new Two.Vector(originPos.x / metersToPixels_X_Converter, context.figure.radius.value),
+            simInput.deltaTime.value
         )
     )
     two.play()
@@ -194,21 +196,12 @@ const startSimulation = (simInput) => {
 /**
  * Computes the maximum height a body will reach given the initial speed of the body and acceleration it experiments.
  * @param {Number} initialSpeed
- * @param {Number} acceleration
+ * @param {Number} figureCharge
+ * @param {Number} particleMass
+ * @param {Number} particleCharge
  */
-const computeHeight = (initialSpeed, acceleration) => {
-    return -Math.pow(initialSpeed, 2) / (2 * acceleration)
-}
-
-/**
- * Computes the acceleration the particle will experiment due to the figure.
- *
- * @param {SphereData} figureInfo
- * @param {Particle} particle
- */
-const computeAcceleration = (figureInfo, particle) => {
-    const chargeField = getChargeField(figureInfo)
-    return (chargeField * particle.charge.value) / particle.mass.value
+const computeHeight = (initialSpeed, figureCharge, particleMass, particleCharge) => {
+    return 2*figureCharge*particleCharge/(4*HALF_PI*2*EPSILON_0*particleMass*Math.pow(initialSpeed, 2))
 }
 
 /**
@@ -217,63 +210,58 @@ const computeAcceleration = (figureInfo, particle) => {
  * @param {SimulationInput} simInput The input to the simulation..
  * @param {SimulationContext} context The context of the simulation.
  * @param {Two.Circle} point TwoJS object that displays the particle.
- * @param {Number} angle Angle that represents the position of the particle in the sphere.
- * @param {Two.Vector} initialPosition The initial position of the particle.
+ * @param {Two.Vector} initialPosition The initial position of the particle in meters.
+ * @param {Number} deltaTime The time that passes between each frame.
  * @returns {Function} The function that simulates the ticks
  */
 const constructSimulationTick = (
     { particle, initialVelocity },
     context,
     point,
-    angle,
-    initialPosition
+    initialPosition,
+    deltaTime
 ) => {
     // TODO Take into account units!
-
-    const chargeField = getChargeField(context.figure)
-    console.log(`The charge field is: ${chargeField}`)
     let t = 0
 
-    const a = (chargeField * particle.charge.value) / particle.mass.value
-    const a_x0 = a * Math.cos(angle)
-    const a_y0 = a * Math.sin(angle)
-
-    console.log(`Acceleration: (${a_x0}, ${a_y0})`)
-
     const v_0 = initialVelocity?.value ?? testingInitialVelocity
-    const v_x0 = v_0 * Math.cos(angle)
-    const v_y0 = v_0 * Math.sin(angle)
+    let v_y = v_0
 
-    const x_0 = initialPosition.x / metersToPixels_X_Converter
-    const y_0 = initialPosition.y / metersToPixels_Y_Converter
+    const x_0 = initialPosition.x
+    const y_0 = initialPosition.y
+    let y = y_0
 
-    console.log(`Initial Position: (${x_0}, ${y_0})`)
+    console.log(`Initial Position: ${y}`)
 
     console.log('Creating function...')
 
     return (_) => {
-        t += 1e-2
-        console.log(`t=${t}`)
+        t += deltaTime
+        console.log(`t = ${t}`)
 
-        const x = x_0 + v_x0 * t + (1 / 2) * a_x0 * Math.pow(t, 2)
-        const y = y_0 - v_y0 * t - (1 / 2) * a_y0 * Math.pow(t, 2)
+        const chargeField = getChargeField(context.figure, y)
+        console.log(`The charge field is: ${chargeField}`)
 
-        point.position.set(
-            x * metersToPixels_X_Converter,
-            y * metersToPixels_Y_Converter
-        )
-        console.log(
-            `Position set to (${x * metersToPixels_X_Converter},${
-                y * metersToPixels_Y_Converter
-            })}`
-        )
+        const a_y = (chargeField * particle.charge.value) / particle.mass.value
 
-        const timedOut = floatEquals(t, 10, 0.1)
-        const xInsideSphere = angle <= HALF_PI ? x <= x_0 : x >= x_0
-        const yInsideSphere = y >= y_0
+        console.log(`Acceleration: ${a_y}`)
 
-        if ((xInsideSphere && yInsideSphere) || timedOut) {
-            console.log(`(${x}, ${y}) <= (${x_0}, ${y_0})`)
+        v_y += a_y * t
+        console.log(`Velocity: ${v_y}`)
+
+        y += v_y * t
+        console.log(`Position: ${y}`)
+
+        // const y_pixels = two.height - y*metersToPixels_Y_Converter - context.figure.radius.value * metersToPixels_X_Converter
+        const y_pixels = two.height - y*metersToPixels_Y_Converter + 5/7 *context.figure.radius.value * metersToPixels_X_Converter
+        point.position.set(two.width / 2,y_pixels)
+        console.log(`Position set to ${y_pixels}`)
+
+        const timedOut = floatEquals(t, 1, 0.1)
+        const yInsideSphere = y < y_0 || floatEquals(y, y_0, 1e-15)
+
+        if (yInsideSphere || timedOut) {
+            console.log(`${y} <= ${y_0}`)
             two.unbind('update')
         }
     }
@@ -282,10 +270,11 @@ const constructSimulationTick = (
 /**
  *
  * @param {SphereData} figureInfo The data of the figure
+ * @param {Number} distance The distance between the figure and the particle
  */
-const getChargeField = (figureInfo) =>
+const getChargeField = (figureInfo, distance) =>
     figureInfo.charge.value /
-    (4 * HALF_PI * 2 * EPSILON_0 * Math.pow(figureInfo.radius.value, 2))
+    (4 * HALF_PI * 2 * EPSILON_0 * Math.pow(distance, 2))
 
 /**
  * Draws the hemisphere into the screen.
