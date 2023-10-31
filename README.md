@@ -9,7 +9,7 @@
 
 Made with [VueJS](https://vuejs.org/)
 
-🔴 **Live View:** [***Here***](https://danielrasho.github.io/PhetALaTortrix/)
+🔴 **Live View:** [***Here***](https://danielrasho.github.io/BlackCharge/)
 
 🔴 **Video on How to use it:** [***Here***](https://youtu.be/64KSUpqmCec)
 
@@ -34,25 +34,12 @@ All terminal command blocks assume your on the base directory of this repo and t
 
 This command will read the nix file and setup everything that you'll need to develop the app. Everytime you wish to compile the app you'll need to enter this command to have access to all the dev-tools.
 
-The first time you execute the command it may take a while because it needs to install node and rust.
+The first time you execute the command it may take a while because it needs to install node.
 
-### Compiling the Backend
-
-Run the following command to compile the backend:
+Run this command within `/frontend` folder:
 
 ```bash
-cd backend
-wasm-pack build --target web
-```
-
-This generates a pkg directory inside the `backend` directory. This folder represents the module to be used inside the javascript client. [For more information you can watch this video](https://www.youtube.com/watch?v=nW71Mlbmxt8)
-
-### Running the Frontend
-
-For testing and developing of the app frontend, run this command within `/frontend` folder.
-
-```bash
-yarn run dev
+yarn dev
 ```
 
 Then copy the URL showed in the terminal in a browser tab, and you are ready for start developing!
