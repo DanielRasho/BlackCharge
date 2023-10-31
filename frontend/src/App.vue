@@ -8,12 +8,12 @@ const router = useRouter()
 const figures = ref([
     {
         name: 'Plane',
-        img: 'cone.png',
+        img: 'plane.png',
         view: 'Plane'
     },
     {
         name: 'Sphere',
-        img: 'hemisphere.png',
+        img: 'sphere.png',
         view: 'Sphere'
     }
 ])
