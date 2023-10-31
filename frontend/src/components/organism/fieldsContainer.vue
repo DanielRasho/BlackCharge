@@ -95,6 +95,7 @@
                 :unit="props.fields.input.initialVelocity.unit"
                 width="10ch"
                 :initialValue="props.fields.input.initialVelocity.value"
+                :guardInput="notLightVelocityAllowed"
                 @field-updated="simInput.initialVelocity.value = $event"
             />
             <numberField
@@ -121,6 +122,7 @@ import fieldSection from '@/components/molecules/fieldSection.vue'
 import { reactive, ref, watch, toRaw } from 'vue'
 import { ALFA, ELECTRON, MUON, PROTON, TAUON } from '../../lib/particles'
 import {
+LIGHT_SPEED,
     Particle,
     SimulationContext,
     SimulationInput,
@@ -175,6 +177,8 @@ function calculateFieldNameWidth(names) {
     }
     return maxLen + 'ch'
 }
+
+const notLightVelocityAllowed = ( velocity ) => velocity >= LIGHT_SPEED
 
 // Emits hotReload signal when a value from the fields mutate.
 watch(fields, (newFields) => {

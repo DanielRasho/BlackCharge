@@ -54,6 +54,11 @@ const props = defineProps({
         required: false,
         type: String,
         default: 'auto'
+    },
+    guardInput: {
+        required: false,
+        type : Function, 
+        default : (_) => {false}
     }
 })
 
@@ -66,7 +71,8 @@ function updateValue(event) {
     if (
         futureValue == '' ||
         futureValue == '-' ||
-        isNaN(parseFloat(futureValue))
+        isNaN(parseFloat(futureValue)) ||
+        props.guardInput(futureValue)
     ) {
         // Force value update
         currentValue.value = parseFloat(currentValue.value + 1)
