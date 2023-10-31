@@ -1,12 +1,14 @@
 <template>
     <main>
         <div class="canvas" id="canvas"></div>
-        <fieldsContainer :fields="fields" />
+        <fieldsContainer :fields="fields" 
+        @changesSubmited = "updateFields($event)"
+        @startSimulation = "startSimulation($event)"/>
     </main>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, toRaw } from 'vue'
 import fieldsContainer from '../components/organism/fieldsContainer.vue'
 import Two from 'two.js'
 import { HALF_PI } from 'two.js/src/utils/math'
@@ -62,7 +64,7 @@ class PlaneData {
 let x_axis = new Axis(-2e-2, 2e-2)
 let y_axis = new Axis(-2, 2)
 let data = new PlaneData(
-    new SimulationMagnitude(4e-3, 'Charge Density', 'C/m²')
+    new SimulationMagnitude(4e-15, 'Charge Density', 'C/m²'),
 )
 
 let fields = ref(
@@ -72,18 +74,104 @@ let fields = ref(
         data,
         new SimulationInput(
             ELECTRON,
-            new SimulationMagnitude(1, 'Velocity', 'm/s')
+            new SimulationMagnitude(1000, 'Velocity', 'm/s'),
+            new SimulationMagnitude(1e-6, 'Delta Time', 's')
         )
     )
 )
-
-// === DRAWING FUNCIONS ===
 
 const updateFields = (newValue) => {
     fields.value = newValue
     two.clear()
     drawCanvas(toRaw(newValue))
 }
+
+// === MATH FUNCTIONS ===
+/**
+ * Computes the maximum height a body will reach given the initial speed of the body and acceleration it experiments.
+ * @param {Number} initialSpeed
+ * @param {Number} chargeDensity
+ * @param {Number} particleMass
+ * @param {Number} particleCharge
+ */
+ const computeHeight = (
+    initialSpeed,
+    chargeDensity,
+    particleMass,
+    particleCharge
+) => {
+    return ( particleMass * Math.pow(initialSpeed, 2) * EPSILON_0)
+    / (particleCharge * chargeDensity)
+}
+
+/**
+ * @param {PlaneData} figureInfo The data of the figure
+ */
+const getChargeField = (figureInfo) =>
+    figureInfo.chargeDensity.value / (2 * EPSILON_0)
+
+// === ANIMATION FUNCTIONS ===
+
+/**
+ *
+ * @param {SimulationInput} simInput
+ */
+ const startSimulation = (simInput) => {
+    two.clear()
+    drawCanvas(toRaw(fields.value))
+
+    const context = toRaw(fields.value)
+    const originPos = getOriginPos()
+    const initialDrawPosition = new Two.Vector(
+        originPos.x,
+        originPos.y
+    )
+
+    const maxHeight = computeHeight(
+              simInput.initialVelocity.value,
+              context.figure.chargeDensity.value,
+              simInput.particle.mass.value,
+              Math.abs(simInput.particle.charge.value)
+          )
+
+    const maxHeightDisplay = `Maximum Height: ${maxHeight.toExponential(4)} m`
+    two.makeText(maxHeightDisplay, 10, 23, {
+        alignment: 'left',
+        fill: 'green'
+    })
+
+    const dinamicHeightDisplayPosition = new Two.Vector(
+            initialDrawPosition.x + maxHeight * metersToPixels_X_Converter + 20,
+            initialDrawPosition.y - 20
+        )
+        two.makeText(
+            `${maxHeight.toExponential(4)} m`,
+            dinamicHeightDisplayPosition.x,
+            dinamicHeightDisplayPosition.y,
+            {
+                alignment: 'left',
+                fill: 'orange'
+            }
+        )
+        const line = two.makeLine(
+            initialDrawPosition.x,
+            initialDrawPosition.y,
+            dinamicHeightDisplayPosition.x,
+            initialDrawPosition.y
+        )
+        line.fill = line.stroke = 'orange'
+        line.linewidth = 5
+        line.dashes = [6, 5]
+
+        console.log('Starting simulation...')
+        console.dir(context)
+
+        let point = two.makeCircle(dinamicHeightDisplayPosition.x, initialDrawPosition.y, 5)
+        point.fill = '#CF9FFF'
+        two.update() // For debuggin purposes...
+ }
+
+// === DRAWING FUNCIONS ===
 
 /**
  * Draws the hemisphere into the screen.
