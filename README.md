@@ -11,7 +11,7 @@ Made with [VueJS](https://vuejs.org/)
 
 🔴 **Live View:** [***Here***](https://danielrasho.github.io/BlackCharge/)
 
-🔴 **Video on How to use it:** [***Here***](https://youtu.be/64KSUpqmCec)
+🔴 **Video Demostration:** [***Here***](https://youtu.be/SAvX03AomgI)
 
 Made with <3 by
 
